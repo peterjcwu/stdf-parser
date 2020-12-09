@@ -1,0 +1,1 @@
+The STDF files in this directory were originally provided on Galaxy Semiconductor's website for demonstration of their tools.  They were obtained from [here](http://www.galaxysemi.com/examinator/support/install.htm).

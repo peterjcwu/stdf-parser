@@ -4,7 +4,7 @@ import struct
 import math
 import logging
 from .stdf_V4 import Rec_Dict4, Far
-
+# add comment
 
 class ParserBase:
     ENDIAN = '>'

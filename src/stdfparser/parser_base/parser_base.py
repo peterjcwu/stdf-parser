@@ -3,8 +3,9 @@ import sys
 import struct
 import math
 import logging
-from .stdf_V4 import Rec_Dict4, Far
-# add comment
+from .stdf_V4 import Rec_Dict4
+import gzip
+
 
 class ParserBase:
     ENDIAN = '>'
@@ -53,6 +54,8 @@ class ParserBase:
             s_len = self.unp('H', buf[0:2])
             typ = buf[2]
             sub = buf[3]
+            if (typ, sub) not in self.Rec_Dict:
+                return s_len, (typ, sub)
             self.Cur_Rec = self.Rec_Dict[(typ, sub)]
             self.Cur_Rec_Name = str(self.Cur_Rec)
             return s_len, (typ, sub)
@@ -78,6 +81,8 @@ class ParserBase:
         assert (typ, sub) == (0, 10), "Wrong FAR header: typ-%d, sub-%d" % (typ, sub)
 
     def take(self, typ_sub):
+        if typ_sub not in self.Rec_Dict:
+            return
         print('===========  Star of Record %s =======' % str(self.Rec_Dict[typ_sub]))
         for i, j in self.Rec_Dict[typ_sub].fieldMap:
             print('< %s >  :   %s ---> %s' % (str(self.Rec_Dict[typ_sub]), str(i), str(self.data[i])))
@@ -93,32 +98,38 @@ class ParserBase:
             assert i in self.RecName_Dict.keys(), 'Unknown record: %s in Rec_Set' % i
 
     def parse(self, f: str):
-        with open(f, "rb") as fd:
-            while True:
-                r = self._get_header(fd)
-                if r == 'EOF':  # No data in file anymore, break
-                    break
-                else:
-                    slen, (typ, sub) = r # buf length and type,sub is returned
-                # break condition setup done!
-                flag = self.Cur_Rec_Name not in self.Rec_Name_set
-                # setting Rec_Set made Rec_Nset useless
-                if self.Rec_Set == [] and flag:
-                    # process all records except those in self.Rec_Nset ...
-                    buf = fd.read(slen)
-                    assert len(buf) == slen, 'Not enough data read from %s for record %s' % (f, str(self.Rec_Dict[(typ, sub)]))
-                    self.process(buf)
-                    # data is a dictionary with field name as its key
-                    self.take((typ, sub))
-                    # the take method is overwritten by its child to implement specific function
-                elif self.Cur_Rec_Name in self.Rec_Set and flag:
-                    # only process the records in Rec_Set
-                    buf = fd.read(slen)
-                    assert len(buf) == slen, 'Not enough data read from %s for record %s' % (f, str(self.Rec_Dict[(typ, sub)]))
-                    self.process(buf)
-                    self.take((typ, sub))
-                else:
-                    fd.seek(slen, os.SEEK_CUR)
+        if f.endswith(".gz"):
+            fd = gzip.open(f)
+        else:
+            fd = open(f, "rb")
+
+        while True:
+            r = self._get_header(fd)
+            if r == 'EOF':  # No data in file anymore, break
+                break
+            else:
+                slen, (typ, sub) = r # buf length and type,sub is returned
+            # break condition setup done!
+            flag = self.Cur_Rec_Name not in self.Rec_Name_set
+            # setting Rec_Set made Rec_Nset useless
+            if self.Rec_Set == [] and flag:
+                # process all records except those in self.Rec_Nset ...
+                buf = fd.read(slen)
+                assert len(buf) == slen, 'Not enough data read from %s for record %s' % (f, str(self.Rec_Dict[(typ, sub)]))
+                self.process(buf)
+                # data is a dictionary with field name as its key
+                self.take((typ, sub))
+                # the take method is overwritten by its child to implement specific function
+            elif self.Cur_Rec_Name in self.Rec_Set and flag:
+                # only process the records in Rec_Set
+                buf = fd.read(slen)
+                assert len(buf) == slen, 'Not enough data read from %s for record %s' % (f, str(self.Rec_Dict[(typ, sub)]))
+                self.process(buf)
+                self.take((typ, sub))
+            else:
+                fd.seek(slen, os.SEEK_CUR)
+
+        fd.close()
 
     def get_parse_func(self, fmt):
         if fmt in ['U4', 'U1', 'U2']:
@@ -253,7 +264,7 @@ class ParserBase:
                     return (buf[1:],buf[len(buf):])
                 r = buf[1:(1+char_cnt)]
                 return (r, buf[(1+char_cnt):])
-        elif (format.startswith('C') and format[1:].isdigit()):
+        elif format.startswith('C') and format[1:].isdigit():
             if len(buf) < 1:
                 return (None, '')
             else:

@@ -12,7 +12,6 @@ class ParserBase:
 
     def __init__(self):
         self.data = {}
-        self.The_End = False
         self.stdf_ver = 0
         self.Rec_Dict = Rec_Dict4
         self.RecName_Dict = {}
@@ -22,6 +21,50 @@ class ParserBase:
         self.Return = ''
         self.Ignore_File = False
         self.File_Name = ''  # set near the start of parse()
+        self.ENDIAN = '<'  # only support cpu-type == 2
+
+    def parse(self, file_path: str):
+        if file_path.endswith(".gz"):
+            fd = gzip.open(file_path)
+        else:
+            fd = open(file_path, "rb")
+
+        while True:
+            r = self._get_header(fd)
+            if r == 'EOF':  # No data in file anymore, break
+                break
+            else:
+                slen, (typ, sub) = r  # buf length and type,sub is returned
+
+            # break condition setup done!
+            flag = self.Cur_Rec_Name not in self.Rec_Name_set
+
+            # setting Rec_Set made Rec_Nset useless
+            if self.Rec_Set == [] and flag:
+                # process all records except those in self.Rec_Nset ...
+                buf = fd.read(slen)
+                assert len(buf) == slen, 'Not enough data read from %s for record %s' % (
+                    file_path, str(self.Rec_Dict[(typ, sub)]))
+                self.process(buf)
+                # data is a dictionary with field name as its key
+                if (typ, sub) == (50, 30):
+                    print("")
+                try:
+                    self.take((typ, sub))
+                except:
+                    print("")
+                # the take method is overwritten by its child to implement specific function
+            elif self.Cur_Rec_Name in self.Rec_Set and flag:
+                # only process the records in Rec_Set
+                buf = fd.read(slen)
+                assert len(buf) == slen, 'Not enough data read from %s for record %s' % (
+                    file_path, str(self.Rec_Dict[(typ, sub)]))
+                self.process(buf)
+                self.take((typ, sub))
+            else:
+                fd.seek(slen, os.SEEK_CUR)
+
+        fd.close()
 
     def _set_endian(self, cpu_type):
         if cpu_type == 1:
@@ -97,40 +140,6 @@ class ParserBase:
         for i in self.Rec_Set:
             assert i in self.RecName_Dict.keys(), 'Unknown record: %s in Rec_Set' % i
 
-    def parse(self, f: str):
-        if f.endswith(".gz"):
-            fd = gzip.open(f)
-        else:
-            fd = open(f, "rb")
-
-        while True:
-            r = self._get_header(fd)
-            if r == 'EOF':  # No data in file anymore, break
-                break
-            else:
-                slen, (typ, sub) = r # buf length and type,sub is returned
-            # break condition setup done!
-            flag = self.Cur_Rec_Name not in self.Rec_Name_set
-            # setting Rec_Set made Rec_Nset useless
-            if self.Rec_Set == [] and flag:
-                # process all records except those in self.Rec_Nset ...
-                buf = fd.read(slen)
-                assert len(buf) == slen, 'Not enough data read from %s for record %s' % (f, str(self.Rec_Dict[(typ, sub)]))
-                self.process(buf)
-                # data is a dictionary with field name as its key
-                self.take((typ, sub))
-                # the take method is overwritten by its child to implement specific function
-            elif self.Cur_Rec_Name in self.Rec_Set and flag:
-                # only process the records in Rec_Set
-                buf = fd.read(slen)
-                assert len(buf) == slen, 'Not enough data read from %s for record %s' % (f, str(self.Rec_Dict[(typ, sub)]))
-                self.process(buf)
-                self.take((typ, sub))
-            else:
-                fd.seek(slen, os.SEEK_CUR)
-
-        fd.close()
-
     def get_parse_func(self, fmt):
         if fmt in ['U4', 'U1', 'U2']:
             return self._get_Un
@@ -152,11 +161,11 @@ class ParserBase:
             return self._get_Vn
         else:
             assert False, 'Unknown Format: %s' % fmt
-    
+
     def _get_Nn(self, format, buf):
         """ Note: this function process two N1 type every time instead of one
         """
-#        logging.debug('In Get_Nn(): %s' % format)
+        #        logging.debug('In Get_Nn(): %s' % format)
         r = []
         if format == 'N1':
             if len(buf) < 1:
@@ -218,7 +227,7 @@ class ParserBase:
             sys.exit(-1)
 
     def _get_Rn(self, format, buf):
-#        logging.debug('In Get_Rn() %s' % format) 
+        #        logging.debug('In Get_Rn() %s' % format)
         if format == 'R4':
             if len(buf) < 4:
                 return (None, '')
@@ -236,41 +245,34 @@ class ParserBase:
             sys.exit(-1)
 
     def _get_Cn(self, format, buf):
-#        logging.debug('In Get_Cn(): %s' % format) 
+        #        logging.debug('In Get_Cn(): %s' % format)
         if format == 'C1':
             if len(buf) < 1:
-                return (None, '')
+                return None, ''
             else:
                 r = buf[0]
-#                logging.debug('len(buf): %s' % str(len(buf)))
-                return (r, buf[1:])
+                #                logging.debug('len(buf): %s' % str(len(buf)))
+                return r, buf[1:]
         elif format == 'Cn':
             if len(buf) < 1:
-                return (None, '')
+                return None, ''
             else:
                 char_cnt = buf[0]
-#                logging.debug('length of buf: %s' % str(len(buf)))
-#                logging.debug('length of byt: %s' % str(char_cnt))
+                #                logging.debug('length of buf: %s' % str(len(buf)))
+                #                logging.debug('length of byt: %s' % str(char_cnt))
                 if len(buf) < (1 + char_cnt):
-                    logging.critical('Cn: Not enough data in buffer: needed: %s, actual: %s' % (str(1+char_cnt), str(len(buf))))
-                    #print str(self.Cur_Rec)+' : '+str(self.Rec_Cnt)
-                    #for i,j in self.Cur_Rec.fieldMap:
-                    #    if self.data.has_key(i):
-                    #        print "%s : %s" % (str(i), str(self.data[i]))
-                    #return (buf[1:], '')
-                    # this return condition is only for Cn, and actually only stdf v3 Etsr(V3) encounters this problem.
-                    # the recommended way is to for now, ignore these two records in self.Rec_Nset.
-                    # sys.exit(-1)
-                    return (buf[1:],buf[len(buf):])
-                r = buf[1:(1+char_cnt)]
-                return (r, buf[(1+char_cnt):])
+                    logging.critical(
+                        'Cn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt), str(len(buf))))
+                    return buf[1:], buf[len(buf):]
+                r = buf[1:(1 + char_cnt)]
+                return r, buf[(1 + char_cnt):]
         elif format.startswith('C') and format[1:].isdigit():
             if len(buf) < 1:
-                return (None, '')
+                return None, ''
             else:
                 cnt = int(format[1:])
                 r = buf[0:cnt]
-                return (r, buf[cnt:])
+                return r, buf[cnt:]
         else:
             logging.critical('Error format: %s' % format)
             sys.exit(-1)
@@ -282,47 +284,45 @@ class ParserBase:
                 return None, ''
             else:
                 r = buf[0]
-                r = '0x'+hexstring[r>>4]+hexstring[r & 0x0F]
-#                logging.debug('B1: len(buf): %s' % str(len(buf)))
+                r = '0x' + hexstring[r >> 4] + hexstring[r & 0x0F]
+                #                logging.debug('B1: len(buf): %s' % str(len(buf)))
                 if len(buf) == 1:
-                    return (r, '')
+                    return r, ''
                 else:
-                    return (r, buf[1:])
+                    return r, buf[1:]
         if fmt == 'Bn':
             if len(buf) < 1:
-                return (None, '')
+                return None, ''
             else:
-                char_cnt = self.unp('B', buf[0])
-#                logging.debug('length of buf: %s' % str(len(buf)))
-#                logging.debug('length of byt: %s' % str(char_cnt))
+                char_cnt = self.unp('B', bytes([buf[0]]))
                 if len(buf) < (1 + char_cnt):
-                    logging.critical('Bn: Not enough data in buffer: needed: %s, actual: %s' % (str(1+char_cnt), str(len(buf))))
+                    logging.critical('Bn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt), str(len(buf))))
                     sys.exit(-1)
-                r = buf[1:(1+char_cnt)]
+                r = buf[1:(1 + char_cnt)]
                 tmp = '0x'
                 for i in r:
                     v = self.unp('B', i)
-                    tmp = tmp+hexstring[v >> 4]+hexstring[v & 0x0F]
+                    tmp = tmp + hexstring[v >> 4] + hexstring[v & 0x0F]
                 r = tmp
-                return (r, buf[(1+char_cnt):])
+                return (r, buf[(1 + char_cnt):])
         else:
             logging.critical('Error format: %s' % fmt)
             sys.exit(-1)
 
-    def _get_Dn(self, format, buf):
-        if format == 'Dn':
+    def _get_Dn(self, fmt, buf):
+        if fmt == 'Dn':
             if len(buf) < 1:
                 return (None, '')
             else:
                 dlen = self.unp('H', buf[0:2])
                 buf = buf[2:]
                 r = []
-                dbyt = int(math.ceil(dlen/8.0))
+                dbyt = int(math.ceil(dlen / 8.0))
                 assert len(buf) >= dbyt
                 for i in range(dbyt):
-                    tmp = self.unp('B',buf[i])
+                    tmp = self.unp('B', buf[i])
                     for j in range(8):
-                        r.append((tmp>>j) & 0x01)
+                        r.append((tmp >> j) & 0x01)
                 return (r, buf[dbyt:])
 
     def _get_Kx(self, format, buf):
@@ -337,19 +337,19 @@ class ParserBase:
         r = []
         func = self.get_parse_func(item_format)
         if item_format == 'N1':
-            cnt = int(math.ceil(cnt/2.0))
+            cnt = int(math.ceil(cnt / 2.0))
             for i in range(cnt):
                 item, buf = func(item_format, buf)
                 r.append(item[0])
                 r.append(item[1])
-            return (r, buf)
+            return r, buf
         else:
             for i in range(cnt):
                 item, buf = func(item_format, buf)
                 r.append(item)
-            return (r, buf)
+            return r, buf
 
-    def _get_Vn(self, format, buf):
+    def _get_Vn(self, fmt, buf):
         # logging.debug('In Get_Vn(): %s' % format)
         data_type = ['B0', 'U1', 'U2', 'U4', 'I1', 'I2', 'I4',
                      'R4', 'R8', 'Cn', 'Bn', 'Dn', 'N1']

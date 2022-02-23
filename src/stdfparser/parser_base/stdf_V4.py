@@ -12,7 +12,7 @@ class RecordMeta(type):
 
 
 class Far:
-    __metaclass__ = RecordMeta
+    name = "Far"
     typ = 0
     sub = 10
     fieldMap = (
@@ -22,7 +22,7 @@ class Far:
 
 
 class Atr:
-    __metaclass__ = RecordMeta
+    name = "Atr"
     typ = 0
     sub = 20
     fieldMap = (
@@ -32,7 +32,7 @@ class Atr:
 
 
 class Mir:
-    __metaclass__ = RecordMeta
+    name = "Mir"
     typ = 1
     sub = 10
     fieldMap = (
@@ -78,7 +78,7 @@ class Mir:
 
 
 class Mrr:
-    __metaclass__ = RecordMeta
+    name = "Mrr"
     typ = 1
     sub = 20
     fieldMap = (
@@ -90,7 +90,7 @@ class Mrr:
 
 
 class Pcr:
-    __metaclass__ = RecordMeta
+    name = "Pcr"
     typ = 1
     sub = 30
     fieldMap = (
@@ -105,7 +105,7 @@ class Pcr:
 
 
 class Hbr:
-    __metaclass__ = RecordMeta
+    name = "Hbr"
     typ = 1
     sub = 40
     fieldMap = (
@@ -119,7 +119,7 @@ class Hbr:
 
 
 class Sbr:
-    __metaclass__ = RecordMeta
+    name = "Sbr"
     typ = 1
     sub = 50
     fieldMap = (
@@ -133,7 +133,7 @@ class Sbr:
 
 
 class Pmr:
-    __metaclass__ = RecordMeta
+    name = "Pmr"
     typ = 1
     sub = 60
     fieldMap = (
@@ -148,7 +148,7 @@ class Pmr:
 
 
 class Pgr:
-    __metaclass__ = RecordMeta
+    name = "Pgr"
     typ = 1
     sub = 62
     fieldMap = (
@@ -160,7 +160,7 @@ class Pgr:
 
 
 class Plr:
-    __metaclass__ = RecordMeta
+    name = "Plr"
     typ = 1
     sub = 63
     fieldMap = (
@@ -176,7 +176,7 @@ class Plr:
 
 
 class Rdr:
-    __metaclass__ = RecordMeta
+    name = "Rdr"
     typ = 1
     sub = 70
     fieldMap = (
@@ -186,7 +186,7 @@ class Rdr:
 
 
 class Sdr:
-    __metaclass__ = RecordMeta
+    name = "Sdr"
     typ = 1
     sub = 80
     fieldMap = (
@@ -214,7 +214,7 @@ class Sdr:
 
 
 class Wir:
-    __metaclass__ = RecordMeta
+    name = "Wir"
     typ = 2
     sub = 10
     fieldMap = (
@@ -226,7 +226,7 @@ class Wir:
 
 
 class Wrr:
-    __metaclass__ = RecordMeta
+    name = "Wrr"
     typ = 2
     sub = 20
     fieldMap = (
@@ -248,7 +248,7 @@ class Wrr:
 
 
 class Wcr:
-    __metaclass__ = RecordMeta
+    name = "Wcr"
     typ = 2
     sub = 30
     fieldMap = (
@@ -265,7 +265,7 @@ class Wcr:
 
 
 class Pir:
-    __metaclass__ = RecordMeta
+    name = "Pir"
     typ = 5
     sub = 10
     fieldMap = (
@@ -275,7 +275,7 @@ class Pir:
 
 
 class Prr:
-    __metaclass__ = RecordMeta
+    name = "Prr"
     typ = 5
     sub = 20
     fieldMap = (
@@ -295,7 +295,7 @@ class Prr:
 
 
 class Tsr:
-    __metaclass__ = RecordMeta
+    name = "Tsr"
     typ = 10
     sub = 30
     fieldMap = (
@@ -319,7 +319,7 @@ class Tsr:
 
 
 class Ptr:
-    __metaclass__ = RecordMeta
+    name = "Ptr"
     typ = 15
     sub = 10
     fieldMap = (
@@ -347,7 +347,7 @@ class Ptr:
 
 
 class Mpr:
-    __metaclass__ = RecordMeta
+    name = "Mpr"
     typ = 15
     sub = 15
     fieldMap = (
@@ -382,7 +382,7 @@ class Mpr:
 
 
 class Ftr:
-    __metaclass__ = RecordMeta
+    name = "Ftr"
     typ = 15
     sub = 20
     fieldMap = (
@@ -418,7 +418,7 @@ class Ftr:
 
 
 class Bps:
-    __metaclass__ = RecordMeta
+    name = "Bps"
     typ = 20
     sub = 10
     fieldMap = (
@@ -427,14 +427,14 @@ class Bps:
 
 
 class Eps:
-    __metaclass__ = RecordMeta
+    name = "Eps"
     typ = 20
     sub = 20
     fieldMap = ()
 
 
 class Gdr:
-    __metaclass__ = RecordMeta
+    name = "Gdr"
     typ = 50
     sub = 10
     fieldMap = (
@@ -443,7 +443,7 @@ class Gdr:
 
 
 class Dtr:
-    __metaclass__ = RecordMeta
+    name = "Dtr"
     typ = 50
     sub = 30
     fieldMap = (

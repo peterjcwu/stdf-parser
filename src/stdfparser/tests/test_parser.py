@@ -1,6 +1,8 @@
 import os
+import csv
+from Semi_ATE import STDF
 from parser_base import ParserBase
-from parser_csv import ParserCsv
+from parser_csv import ParserCsv, ParserEcid
 
 
 def test_parse_lot2():
@@ -24,22 +26,32 @@ def test_with_ori_parser():
     parser.parse(stdf)
 
 
-def test_parse_fd2():
-    stdf = os.path.abspath(r"C:\workspace\stdf-parser\WLCSP1_IW612UK_A1_oldOS_20220221093327.stdf.gz")
-    from Semi_ATE import STDF
-    with open(r"c:\tmp\out2.atdf", "w") as f_out:
+def test_parse_fd33():
+    stdf = os.path.abspath(r"C:\Users\nxf79056\Downloads\T6K160.00_STRV_T6K160-06G5_20220401102358_mod.stdf.gz")
+    with open(r"C:\Users\nxf79056\Downloads\T6K160.00_STRV_T6K160-06G5_20220401102358_mod.adtf", "w") as f_out:
         for REC in STDF.records_from_file(stdf):
             f_out.write(str(REC))
 
 
 def test_parse_f3():
-    stdf = os.path.abspath(r"C:\Users\nxf79056\Downloads\Cres_IW612UK_A1_oldOS_20220223164509.stdf.gz")
+    stdf = os.path.abspath(r"C:\Users\nxf79056\Downloads\T6K160_BATCHCARD_T6K160-06G5_20220318113306.stdf.gz")
     parser = ParserCsv()
     parser.parse(stdf)
-    import csv
-    with open(r"C:\tmp\tmp.csv", "w", newline="") as f_out:
+
+    with open(r"C:\workspace\io_leak\T6K160_LOOP200_20220308125623.csv", "w", newline="") as f_out:
         writer = csv.DictWriter(f_out, fieldnames=["Site", "TestNum", "TestTxt", "Result"])
         for k, v in parser.cache.items():
             for ptr in v:
-                writer.writerow({"Site": ptr["SITE_NUM"], "TestNum": ptr["TEST_NUM"], "TestTxt": ptr["TEST_TXT"], "Result": ptr["RESULT"]})
+                writer.writerow({
+                    "Site": ptr["SITE_NUM"],
+                    "TestNum": ptr["TEST_NUM"],
+                    "TestTxt": str(ptr["TEST_TXT"]),
+                    "Result": ptr["RESULT"]}
+                )
 
+
+def test_parse_ecid():
+    stdf = os.path.abspath(r"C:\Users\nxf79056\Downloads\T6K160_BATCHCARD_T6K160-06G5_20220318113306.stdf.gz")
+    parser = ParserEcid()
+    parser.parse(stdf)
+    parser.export()

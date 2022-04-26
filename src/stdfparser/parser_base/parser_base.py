@@ -24,11 +24,12 @@ class ParserBase:
             if r == 'EOF':  # No data in file anymore, break
                 break
             else:
-                slen, (typ, sub) = r  # buf length and type,sub is returned
+                slen, (typ, sub), head_buf = r  # buf length and type,sub is returned
 
             buf = fd.read(slen)
-            assert len(buf) == slen, 'Not enough data read from %s for record %s' % (
-                file_path, str(self.Rec_Dict[(typ, sub)]))
+            if len(buf) != slen:
+                print('Not enough data read from %s for record %s' % (
+                    file_path, str(self.Rec_Dict[(typ, sub)])))
             self.process(buf)
             self.take((typ, sub))
 
@@ -58,10 +59,10 @@ class ParserBase:
             typ = buf[2]
             sub = buf[3]
             if (typ, sub) not in self.Rec_Dict:
-                return s_len, (typ, sub)
+                return s_len, (typ, sub), buf
             self.Cur_Rec = self.Rec_Dict[(typ, sub)]
             self.Cur_Rec_Name = str(self.Cur_Rec)
-            return s_len, (typ, sub)
+            return s_len, (typ, sub), buf
 
     def unp(self, fmt, buf):
         r, = struct.unpack(self.ENDIAN + fmt, buf)
@@ -75,6 +76,7 @@ class ParserBase:
             print('< %s >  :   %s ---> %s' % (str(self.Rec_Dict[typ_sub]), str(i), str(self.data[i])))
 
     def process(self, buf):
+        self.data = {}
         for i in self.Cur_Rec.fieldMap:
             tmp = i[1]
             parse_func = self.get_parse_func(tmp)
@@ -192,18 +194,14 @@ class ParserBase:
                 return None, ''
             else:
                 r = buf[0]
-                #                logging.debug('len(buf): %s' % str(len(buf)))
                 return r, buf[1:]
         elif fmt == 'Cn':
             if len(buf) < 1:
                 return None, ''
             else:
                 char_cnt = buf[0]
-                #                logging.debug('length of buf: %s' % str(len(buf)))
-                #                logging.debug('length of byt: %s' % str(char_cnt))
                 if len(buf) < (1 + char_cnt):
-                    logging.critical(
-                        'Cn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt), str(len(buf))))
+                    logging.critical('Cn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt), str(len(buf))))
                     return buf[1:], buf[len(buf):]
                 r = buf[1:(1 + char_cnt)]
                 return r, buf[(1 + char_cnt):]

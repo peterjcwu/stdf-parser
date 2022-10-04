@@ -140,7 +140,6 @@ class RecordBase(ABC):
             raise Exception("%s object creation error : unsupported endian '%s'" % (self.id, endian))
         # Record
         if record is not None:
-            if self.local_debug: print("len(%s) = %s" % (self.id, len(record)))
             self._unpack(record)
 
     def get_fields(self, FieldID=None):
@@ -522,7 +521,6 @@ class RecordBase(ABC):
                     raise Exception("%s.set_value(%s, %s) Error : '%s' is an unsupported Type" % (
                         self.id, FieldKey, Value, '*'.join((Type, Bytes))))
                 self.fields[FieldKey]['Value'] = temp
-                if self.local_debug: print("%s._set_value(%s, %s) -> Value = %s" % (self.id, FieldKey, Value, temp))
 
             elif Type == 'I':  # signed integer
                 if type(Value) not in [int, int]:
@@ -586,7 +584,6 @@ class RecordBase(ABC):
                     raise Exception("%s.set_value(%s, %s) : Unsupported type '%s'" % (
                         self.id, FieldKey, Value, '*'.join((Type, Bytes))))
                 self.fields[FieldKey]['Value'] = temp
-                if self.local_debug: print("%s._set_value(%s, %s) -> Value = %s" % (self.id, FieldKey, Value, temp))
 
             elif Type == 'B':  # list of single character strings being '0' or '1' (max length = 255*8 = 2040 bits)
                 if Bytes.isdigit():
@@ -929,8 +926,7 @@ class RecordBase(ABC):
             if ((Type == 'U') or (Type == 'I')):
                 if Bytes in ['1', '2', '4', '8']:
                     retval = int(Bytes)
-                    if self.local_debug: print(
-                        "%s._type_size(%s) = %s [%s]" % (self.id, FieldKey, retval, '*'.join((Type, Bytes))))
+
                     return retval
                 else:
                     raise Exception(
@@ -947,13 +943,11 @@ class RecordBase(ABC):
             elif Type == 'C':
                 if Bytes.isdigit():
                     retval = int(Bytes)
-                    if self.local_debug: print(
-                        "%s._type_size(%s) = %s [%s]" % (self.id, FieldKey, retval, '*'.join((Type, Bytes))))
+
                     return retval
                 elif Bytes == 'n':
                     retval = len(Value) + 1
-                    if self.local_debug: print(
-                        "%s._type_size(%s) = %s [%s]" % (self.id, FieldKey, retval, '*'.join((Type, Bytes))))
+
                     return retval
                 elif Bytes == 'f':
                     retval = len(Value)
@@ -1099,7 +1093,6 @@ class RecordBase(ABC):
             if field == 'REC_SUB': continue
             reclen += self._type_size(field)
 
-        if self.local_debug: print("%s._update_rec_len() = %s" % (self.id, reclen))
         self.fields['REC_LEN']['Value'] = reclen
 
     def _pack_item(self, FieldID):
@@ -1204,13 +1197,7 @@ class RecordBase(ABC):
                         "%s._pack_item(%s) : Unsupported type-format '%s'" % (self.id, FieldKey, TypeFormat))
             for i in range(K):
                 pkg += struct.pack(fmt, ValueMask[i])
-            if self.local_debug:
-                if TypeMultiplier:
-                    print("%s._pack_item(%s)\n   '%s' [%s]\n   %s bytes" % (
-                        self.id, FieldKey, self.hexify(pkg), str(K) + TypeFormat, len(pkg)))
-                else:
-                    print("%s._pack_item(%s)\n   '%s' [%s]\n   %s bytes" % (
-                        self.id, FieldKey, self.hexify(pkg), TypeFormat, len(pkg)))
+
         elif Type == 'I':  # (list of) Signed integer(s)
             if TypeMultiplier:
                 ValueMask = Value
@@ -1298,13 +1285,7 @@ class RecordBase(ABC):
                 else:
                     raise Exception(
                         "%s._pack_item(%s) : Unsupported type-format '%s'" % (self.id, FieldKey, TypeFormat))
-            if self.local_debug:
-                if TypeMultiplier:
-                    print("%s._pack_item(%s)\n   '%s' [%s]\n   %s bytes" % (
-                        self.id, FieldKey, self.hexify(pkg), str(K) + TypeFormat, len(pkg)))
-                else:
-                    print("%s._pack_item(%s)\n   '%s' [%s]\n   %s bytes" % (
-                        self.id, FieldKey, self.hexify(pkg), TypeFormat, len(pkg)))
+
         elif Type == 'S':  # (list of) long string(s)
             if TypeMultiplier:
                 ValueMask = Value
@@ -1828,8 +1809,6 @@ class RecordBase(ABC):
                     else:
                         raise Exception("%s._unpack_item(%s) : Unsupported type '%s'." % (
                             self.id, FieldKey, '*'.join((Type, Bytes))))
-                    if self.local_debug: print("%s._unpack_item(%s)\n   '%s' [%s] -> %s" % (
-                        self.id, FieldKey, self.hexify(pkg), '*'.join((Type, Bytes)), result))
                     self.set_value(FieldID, result)
 
                 elif Type == 'I':  # signed integer
@@ -1918,8 +1897,7 @@ class RecordBase(ABC):
                     else:
                         raise Exception("%s._unpack_item(%s) : Unsupported type '%s'." % (
                             self.id, FieldKey, '*'.join((Type, Bytes))))
-                    if self.local_debug: print("%s._unpack_item(%s)\n   '%s' [%s] -> %s" % (
-                        self.id, FieldKey, self.hexify(pkg), '*'.join((Type, Bytes)), result))
+
                     self.set_value(FieldID, result)
 
                 elif Type == 'B':  # list of single character strings being '0' or '1' (max length = 255*8 = 2040 bits)
@@ -2068,9 +2046,6 @@ class RecordBase(ABC):
         Private method to unpack a record (including header -to-check-record-type-) and set the appropriate values in fields.
         """
         self.buffer = record
-
-        if self.local_debug: print(
-            "%s._unpack(%s) with buffer length = %s" % (self.id, self.hexify(record), len(record)))
 
         if record[2] != self.fields['REC_TYP']['Value']:
             raise Exception("%s_unpack(%s) : REC_TYP doesn't match record" % self.hexify(record))
@@ -2243,11 +2218,7 @@ class RecordBase(ABC):
             header += self._pack_item(sequence[item])
 
         # assemble the record
-        retval = header + body
-
-        if self.local_debug:
-            print("%s.pack()\n   '%s'\n   %s bytes" % (self.id, self.hexify(retval), len(retval)))
-        return retval
+        return header + body
 
     def __str__(self):
         """

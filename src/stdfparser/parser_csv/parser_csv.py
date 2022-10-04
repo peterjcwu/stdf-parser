@@ -42,3 +42,8 @@ class ParserCsv(ParserBase):
             print()
         handler = self.handlers.get(record.name)
         handler(self, record)
+
+
+if __name__ == '__main__':
+    c = ParserCsv()
+    c.parse(r"C:\log\w228_redfinch_wlcsp_spec_search_remove_items\26819921HTOL72H_26819921HTOL72H_VER_20220627151447.stdf.gz")

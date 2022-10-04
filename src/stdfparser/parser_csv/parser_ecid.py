@@ -35,32 +35,33 @@ def prr_handler(parser, record):
 def dtr_handler(parser, record):
     # print('===========  Star of Record %s =======' % record.name)
     text = parser.data["TEXT_DAT"].decode()
-    if not text.startswith("ECID"):
-        return
-
-    m = re.search(r"^ECID_VALID,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
-    if m:
-        parser.cache[m.group("site")]["ECID_VALID"] = m.group("val")
-
-    m = re.search(r"^ECID_FAB,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
-    if m:
-        parser.cache[m.group("site")]["ECID_FAB"] = m.group("val")
-
-    m = re.search(r"^ECID_LOT_ID,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
-    if m:
-        parser.cache[m.group("site")]["ECID_LOT_ID"] = m.group("val")
-
-    m = re.search(r"^ECID_WAFER_ID,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
-    if m:
-        parser.cache[m.group("site")]["ECID_WAFER_ID"] = m.group("val")
-
-    m = re.search(r"^ECID_X_COORD,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
-    if m:
-        parser.cache[m.group("site")]["ECID_X_COORD"] = m.group("val")
-
-    m = re.search(r"^ECID_Y_COORD,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
-    if m:
-        parser.cache[m.group("site")]["ECID_Y_COORD"] = m.group("val")
+    print(text)
+    # if not text.startswith("ECID"):
+    #     return
+    #
+    # m = re.search(r"^ECID_VALID,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
+    # if m:
+    #     parser.cache[m.group("site")]["ECID_VALID"] = m.group("val")
+    #
+    # m = re.search(r"^ECID_FAB,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
+    # if m:
+    #     parser.cache[m.group("site")]["ECID_FAB"] = m.group("val")
+    #
+    # m = re.search(r"^ECID_LOT_ID,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
+    # if m:
+    #     parser.cache[m.group("site")]["ECID_LOT_ID"] = m.group("val")
+    #
+    # m = re.search(r"^ECID_WAFER_ID,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
+    # if m:
+    #     parser.cache[m.group("site")]["ECID_WAFER_ID"] = m.group("val")
+    #
+    # m = re.search(r"^ECID_X_COORD,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
+    # if m:
+    #     parser.cache[m.group("site")]["ECID_X_COORD"] = m.group("val")
+    #
+    # m = re.search(r"^ECID_Y_COORD,0,(?P<site>\d+),(?P<val>.*)", text, re.I)
+    # if m:
+    #     parser.cache[m.group("site")]["ECID_Y_COORD"] = m.group("val")
 
 
 class ParserEcid(ParserBase):
@@ -69,7 +70,7 @@ class ParserEcid(ParserBase):
         self.handlers = {
             # "Ptr": ptr_handler,
             "Dtr": dtr_handler,
-            "Prr": prr_handler,
+            # "Prr": prr_handler,
         }
         self.cache = defaultdict(dict)
         self.rows = []

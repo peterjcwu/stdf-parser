@@ -451,10 +451,9 @@ class Dtr:
     )
 
 
-Records = [Far(), Atr(), Mir(), Mrr(), Pcr(), Hbr(), Sbr(), Pmr(), Pgr(),
-           Plr(), Rdr(), Sdr(), Wir(), Wrr(), Wcr(), Pir(), Prr(),
-           Tsr(), Ptr(), Mpr(), Ftr(), Bps(), Eps(), Gdr(), Dtr()]
+rec_dict = {}
 
-Rec_Dict4 = {}
-for r in Records:
-    Rec_Dict4[(r.typ, r.sub)] = r
+for r in [Far(), Atr(), Mir(), Mrr(), Pcr(), Hbr(), Sbr(), Pmr(), Pgr(),
+          Plr(), Rdr(), Sdr(), Wir(), Wrr(), Wcr(), Pir(), Prr(),
+          Tsr(), Ptr(), Mpr(), Ftr(), Bps(), Eps(), Gdr(), Dtr()]:
+    rec_dict[(r.typ, r.sub)] = r

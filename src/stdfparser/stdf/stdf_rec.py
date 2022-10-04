@@ -1,86 +1,34 @@
 import sys
-import struct
 import math
 import logging
-import gzip
-from .stdf_V4 import Rec_Dict4
+from typing import Tuple
+from util import unp
+from .stdf_rec_dict import rec_dict
 
 
-class ParserBase:
+class StdfRec:
+    ENDIAN = '<'  # only support cpu-type == 2
+
     def __init__(self):
+        self.key = None
+        self.buf = None
         self.data = {}
-        self.Rec_Dict = Rec_Dict4
-        self.Cur_Rec = None
-        self.ENDIAN = '<'  # only support cpu-type == 2
+        self.field_map = None
 
-    def parse(self, file_path: str):
-        if file_path.endswith(".gz"):
-            fd = gzip.open(file_path)
-        else:
-            fd = open(file_path, "rb")
-
-        while True:
-            r = self._get_header(fd)
-            if r == 'EOF':  # No data in file anymore, break
-                break
-            else:
-                slen, (typ, sub), head_buf = r  # buf length and type,sub is returned
-
-            buf = fd.read(slen)
-            if len(buf) != slen:
-                print('Not enough data read from %s for record %s' % (
-                    file_path, str(self.Rec_Dict[(typ, sub)])))
-            self.process(buf)
-            self.take((typ, sub))
-
-        fd.close()
-
-    def _set_endian(self, cpu_type):
-        if cpu_type == 1:
-            logging.info('Set to Big Endian Mode')
-            self.ENDIAN = '>'
-        elif cpu_type == 2:
-            logging.info('Set to Small Endian Mode')
-            self.ENDIAN = '<'
-        elif cpu_type == 0:
-            logging.critical('DEC PDP-11 or VAX processors, not supported!')
-            sys.exit(0)
-
-    def _get_header(self, fd):
-        # STDF header is 4 bytes long
-        buf = fd.read(4)
-        if len(buf) == 0:
-            return 'EOF'
-        elif len(buf) != 4:
-            logging.critical('_get_header: Incomplete STDF file.')
-            sys.exit(-1)
-        else:
-            s_len = self.unp('H', buf[0:2])
-            typ = buf[2]
-            sub = buf[3]
-            if (typ, sub) not in self.Rec_Dict:
-                return s_len, (typ, sub), buf
-            self.Cur_Rec = self.Rec_Dict[(typ, sub)]
-            self.Cur_Rec_Name = str(self.Cur_Rec)
-            return s_len, (typ, sub), buf
-
-    def unp(self, fmt, buf):
-        r, = struct.unpack(self.ENDIAN + fmt, buf)
-        return r
-
-    def take(self, typ_sub):
-        if typ_sub not in self.Rec_Dict:
-            return
-        print('===========  Star of Record %s =======' % self.Rec_Dict[typ_sub].name)
-        for i, j in self.Rec_Dict[typ_sub].fieldMap:
-            print('< %s >  :   %s ---> %s' % (str(self.Rec_Dict[typ_sub]), str(i), str(self.data[i])))
-
-    def process(self, buf):
+    def process(self, key: Tuple[int, int], buf: bytes):
+        self.key = key
+        self.buf = buf
         self.data = {}
-        for i in self.Cur_Rec.fieldMap:
+        rec_template = rec_dict.get(key)
+        if rec_template is None:
+            return self
+
+        self.field_map = rec_template.fieldMap
+        for i in self.field_map:
             tmp = i[1]
             parse_func = self.get_parse_func(tmp)
             self.data[i[0]], buf = parse_func(tmp, buf)
+        return self
 
     def get_parse_func(self, fmt):
         if fmt in ['U4', 'U1', 'U2']:
@@ -113,7 +61,7 @@ class ParserBase:
             if len(buf) < 1:
                 return None, ''
             else:
-                tmp = self.unp('B', buf[0])
+                tmp = unp(self.ENDIAN, 'B', buf[0])
                 r.append(tmp & 0x0F)
                 r.append(tmp >> 4)
                 return r, buf[1:]
@@ -127,19 +75,19 @@ class ParserBase:
             if len(buf) < 4:
                 return None, ''
             else:
-                r = self.unp('I', buf[0:4])
+                r = unp(self.ENDIAN, 'I', buf[0:4])
                 return r, buf[4:]
         elif fmt == 'U2':
             if len(buf) < 2:
                 return None, ''
             else:
-                r = self.unp('H', buf[0:2])
+                r = unp(self.ENDIAN, 'H', buf[0:2])
                 return r, buf[2:]
         elif fmt == 'U1':
             if len(buf) < 1:
                 return None, ''
             else:
-                r = self.unp('B', buf[0:1])
+                r = unp(self.ENDIAN, 'B', buf[0:1])
                 return r, buf[1:]
         else:
             logging.critical('Error format: %s' % fmt)
@@ -150,19 +98,19 @@ class ParserBase:
             if len(buf) < 4:
                 return None, ''
             else:
-                r = self.unp('i', buf[0:4])
+                r = unp(self.ENDIAN, 'i', buf[0:4])
                 return r, buf[4:]
         elif fmt == 'I2':
             if len(buf) < 2:
                 return None, ''
             else:
-                r = self.unp('h', buf[0:2])
+                r = unp(self.ENDIAN, 'h', buf[0:2])
                 return r, buf[2:]
         elif fmt == 'I1':
             if len(buf) < 2:
                 return None, ''
             else:
-                r = self.unp('b', buf[0:1])
+                r = unp(self.ENDIAN, 'b', buf[0:1])
                 return r, buf[1:]
         else:
             logging.critical('Error format: %s' % fmt)
@@ -174,13 +122,13 @@ class ParserBase:
             if len(buf) < 4:
                 return None, ''
             else:
-                r = self.unp('f', buf[0:4])
+                r = unp(self.ENDIAN, 'f', buf[0:4])
                 return r, buf[4:]
         elif fmt == 'R8':
             if len(buf) < 8:
                 return None, ''
             else:
-                r = self.unp('d', buf[0:8])
+                r = unp(self.ENDIAN, 'd', buf[0:8])
                 return r, buf[8:]
         else:
             logging.critical('Error format: %s' % fmt)
@@ -193,7 +141,7 @@ class ParserBase:
             if len(buf) < 1:
                 return None, ''
             else:
-                r = buf[0]
+                r = chr(buf[0])
                 return r, buf[1:]
         elif fmt == 'Cn':
             if len(buf) < 1:
@@ -201,10 +149,11 @@ class ParserBase:
             else:
                 char_cnt = buf[0]
                 if len(buf) < (1 + char_cnt):
-                    logging.critical('Cn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt), str(len(buf))))
+                    logging.critical('Cn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt),
+                                                                                                str(len(buf))))
                     return buf[1:], buf[len(buf):]
                 r = buf[1:(1 + char_cnt)]
-                return r, buf[(1 + char_cnt):]
+                return r.decode(), buf[(1 + char_cnt):]
         elif fmt.startswith('C') and fmt[1:].isdigit():
             if len(buf) < 1:
                 return None, ''
@@ -233,7 +182,7 @@ class ParserBase:
             if len(buf) < 1:
                 return None, ''
             else:
-                char_cnt = self.unp('B', bytes([buf[0]]))
+                char_cnt = unp(self.ENDIAN, 'B', bytes([buf[0]]))
                 if len(buf) < (1 + char_cnt):
                     logging.critical('Bn: Not enough data in buffer: needed: %s, actual: %s' % (str(1 + char_cnt),
                                                                                                 str(len(buf))))
@@ -241,7 +190,7 @@ class ParserBase:
                 r = buf[1:(1 + char_cnt)]
                 tmp = '0x'
                 for i in r:
-                    v = self.unp('B', i)
+                    v = unp(self.ENDIAN, 'B', i)
                     tmp = tmp + hexstring[v >> 4] + hexstring[v & 0x0F]
                 r = tmp
                 return r, buf[(1 + char_cnt):]
@@ -254,13 +203,13 @@ class ParserBase:
             if len(buf) < 1:
                 return None, ''
             else:
-                dlen = self.unp('H', buf[0:2])
+                dlen = unp(self.ENDIAN, 'H', buf[0:2])
                 buf = buf[2:]
                 r = []
                 dbyt = int(math.ceil(dlen / 8.0))
                 assert len(buf) >= dbyt
                 for i in range(dbyt):
-                    tmp = self.unp('B', buf[i])
+                    tmp = unp(self.ENDIAN, 'B', buf[i])
                     for j in range(8):
                         r.append((tmp >> j) & 0x01)
                 return r, buf[dbyt:]
@@ -273,7 +222,7 @@ class ParserBase:
         item_format = fmt[-2:]
         # then index_cnt = 3 or 13
         index_cnt = fmt[1:-2]
-        cnt = self.data[self.Cur_Rec.fieldMap[int(index_cnt)][0]]
+        cnt = self.data[self.field_map[int(index_cnt)][0]]
         r = []
         func = self.get_parse_func(item_format)
         if item_format == 'N1':

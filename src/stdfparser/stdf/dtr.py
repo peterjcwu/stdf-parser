@@ -19,21 +19,13 @@ class DTR(RecordBase):
     Location:
         Anywhere in the data stream after the initial "FAR-(ATRs)-MIR-(RDR)-(SDRs)" sequence.
     """
-    def __init__(self, version=None, endian=None, record=None):
-        super().__init__(endian, record)
-
+    def __init__(self, endian=None, record=None):
         self.id = 'DTR'
-        self.local_debug = False
-        # Version
-        if version==None or version=='V4' or version=='V3':
-            if version==None: self.version = 'V4'
-            else: self.version = version
-            self.fields = {
-                'REC_LEN'  : {'#' : 0, 'Type' : 'U*2', 'Ref' : None, 'Value' : None, 'Text' : 'Bytes of data following header        ', 'Missing' : None},
-                'REC_TYP'  : {'#' : 1, 'Type' : 'U*1', 'Ref' : None, 'Value' :   50, 'Text' : 'Record type                           ', 'Missing' : None},
-                'REC_SUB'  : {'#' : 2, 'Type' : 'U*1', 'Ref' : None, 'Value' :   30, 'Text' : 'Record sub-type                       ', 'Missing' : None},
-                'TEXT_DAT' : {'#' : 3, 'Type' : 'C*n', 'Ref' : None, 'Value' : None, 'Text' : 'Message                               ', 'Missing' :   ''}
-            }
-        else:
-            raise Exception("%s object creation error: unsupported version '%s'" % (self.id, version))
+        self.version = 'V4'
+        self.fields = {
+            'REC_LEN'  : {'#' : 0, 'Type' : 'U*2', 'Ref' : None, 'Value' : None, 'Text' : 'Bytes of data following header        ', 'Missing' : None},
+            'REC_TYP'  : {'#' : 1, 'Type' : 'U*1', 'Ref' : None, 'Value' :   50, 'Text' : 'Record type                           ', 'Missing' : None},
+            'REC_SUB'  : {'#' : 2, 'Type' : 'U*1', 'Ref' : None, 'Value' :   30, 'Text' : 'Record sub-type                       ', 'Missing' : None},
+            'TEXT_DAT' : {'#' : 3, 'Type' : 'C*n', 'Ref' : None, 'Value' : None, 'Text' : 'Message                               ', 'Missing' :   ''}
+        }
         self._default_init(endian, record)

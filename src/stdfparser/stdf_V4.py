@@ -1,0 +1,561 @@
+from typing import Dict, Tuple
+
+
+class RecordMeta(type):
+    """ This metaclass is used to initialize a class which wants its
+      name as its print form, instead of the typical 
+      <__main__.x instance at 0x@#$%^&*?> form. It is cleaner to view.
+  """
+
+    def __init__(cls, name, bases, dct):
+        def fstr(self):
+            return cls.__name__
+
+        setattr(cls, '__str__', fstr)
+
+
+class Far:
+    name = "Far"
+    typ = 0
+    sub = 10
+    fieldMap = (
+        ('CPU_TYPE', 'U1'),
+        ('STDF_VER', 'U1')
+    )
+
+
+class Atr:
+    name = "Atr"
+    typ = 0
+    sub = 20
+    fieldMap = (
+        ('MOD_TIM', 'U4'),
+        ('CMD_LINE', 'Cn')
+    )
+
+
+class Mir:
+    name = "Mir"
+    typ = 1
+    sub = 10
+    fieldMap = (
+        ('SETUP_T', 'U4'),
+        ('START_T', 'U4'),
+        ('STAT_NUM', 'U1'),
+        ('MODE_COD', 'C1'),
+        ('RTST_COD', 'C1'),
+        ('PROT_COD', 'C1'),
+        ('BURN_TIM', 'U2'),
+        ('CMOD_COD', 'C1'),
+        ('LOT_ID', 'Cn'),
+        ('PART_TYP', 'Cn'),
+        ('NODE_NAM', 'Cn'),
+        ('TSTR_TYP', 'Cn'),
+        ('JOB_NAM', 'Cn'),
+        ('JOB_REV', 'Cn'),
+        ('SBLOT_ID', 'Cn'),
+        ('OPER_NAM', 'Cn'),
+        ('EXEC_TYP', 'Cn'),
+        ('EXEC_VER', 'Cn'),
+        ('TEST_COD', 'Cn'),
+        ('TST_TEMP', 'Cn'),
+        ('USER_TXT', 'Cn'),
+        ('AUX_FILE', 'Cn'),
+        ('PKG_TYP', 'Cn'),
+        ('FAMLY_ID', 'Cn'),
+        ('DATE_COD', 'Cn'),
+        ('FACIL_ID', 'Cn'),
+        ('FLOOR_ID', 'Cn'),
+        ('PROC_ID', 'Cn'),
+        ('OPER_FRQ', 'Cn'),
+        ('SPEC_NAM', 'Cn'),
+        ('SPEC_VER', 'Cn'),
+        ('FLOW_ID', 'Cn'),
+        ('SETUP_ID', 'Cn'),
+        ('DSGN_REV', 'Cn'),
+        ('ENG_ID', 'Cn'),
+        ('ROM_COD', 'Cn'),
+        ('SERL_NUM', 'Cn'),
+        ('SUPR_NAM', 'Cn')
+    )
+
+
+class Mrr:
+    name = "Mrr"
+    typ = 1
+    sub = 20
+    fieldMap = (
+        ('FINISH_T', 'U4'),
+        ('DISP_COD', 'C1'),
+        ('USR_DESC', 'Cn'),
+        ('EXC_DESC', 'Cn')
+    )
+
+
+class Pcr:
+    name = "Pcr"
+    typ = 1
+    sub = 30
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('PART_CNT', 'U4'),
+        ('RTST_CNT', 'U4'),
+        ('ABRT_CNT', 'U4'),
+        ('GOOD_CNT', 'U4'),
+        ('FUNC_CNT', 'U4')
+    )
+
+
+class Hbr:
+    name = "Hbr"
+    typ = 1
+    sub = 40
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('HBIN_NUM', 'U2'),
+        ('HBIN_CNT', 'U4'),
+        ('HBIN_PF', 'C1'),
+        ('HBIN_NAM', 'Cn')
+    )
+
+
+class Sbr:
+    name = "Sbr"
+    typ = 1
+    sub = 50
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('SBIN_NUM', 'U2'),
+        ('SBIN_CNT', 'U4'),
+        ('SBIN_PF', 'C1'),
+        ('SBIN_NAM', 'Cn')
+    )
+
+
+class Pmr:
+    name = "Pmr"
+    typ = 1
+    sub = 60
+    fieldMap = (
+        ('PMR_INDX', 'U2'),
+        ('CHAN_TYP', 'U2'),
+        ('CHAN_NAM', 'Cn'),
+        ('PHY_NAM', 'Cn'),
+        ('LOG_NAM', 'Cn'),
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1')
+    )
+
+
+class Pgr:
+    name = "Pgr"
+    typ = 1
+    sub = 62
+    fieldMap = (
+        ('GRP_INDX', 'U2'),
+        ('GRP_NAM', 'Cn'),
+        ('INDX_CNT', 'U2'),
+        ('PMR_INDX', 'K2U2')
+    )
+
+
+class Plr:
+    name = "Plr"
+    typ = 1
+    sub = 63
+    fieldMap = (
+        ('GRP_CNT', 'U2'),
+        ('GRP_INDX', 'K0U2'),
+        ('GRP_MODE', 'K0U2'),
+        ('GRP_RADX', 'K0U1'),
+        ('PGM_CHAR', 'K0Cn'),
+        ('RTN_CHAR', 'K0Cn'),
+        ('PGM_CHAL', 'K0Cn'),
+        ('RTN_CHAL', 'K0Cn')
+    )
+
+
+class Rdr:
+    name = "Rdr"
+    typ = 1
+    sub = 70
+    fieldMap = (
+        ('NUM_BINS', 'U2'),
+        ('RTST_BIN', 'K0U2')
+    )
+
+
+class Sdr:
+    name = "Sdr"
+    typ = 1
+    sub = 80
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_GRP', 'U1'),
+        ('SITE_CNT', 'U1'),
+        ('SITE_NUM', 'K2U1'),
+        ('HAND_TYP', 'Cn'),
+        ('HAND_ID', 'Cn'),
+        ('CARD_TYP', 'Cn'),
+        ('CARD_ID', 'Cn'),
+        ('LOAD_TYP', 'Cn'),
+        ('LOAD_ID', 'Cn'),
+        ('DIB_TYP', 'Cn'),
+        ('DIB_ID', 'Cn'),
+        ('CABL_TYP', 'Cn'),
+        ('CABL_ID', 'Cn'),
+        ('CONT_TYP', 'Cn'),
+        ('CONT_ID', 'Cn'),
+        ('LASR_TYP', 'Cn'),
+        ('LASR_ID', 'Cn'),
+        ('EXTR_TYP', 'Cn'),
+        ('EXTR_ID', 'Cn')
+    )
+
+
+class Wir:
+    name = "Wir"
+    typ = 2
+    sub = 10
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_GRP', 'U1'),
+        ('START_T', 'U4'),
+        ('WAFER_ID', 'Cn')
+    )
+
+
+class Wrr:
+    name = "Wrr"
+    typ = 2
+    sub = 20
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_GRP', 'U1'),
+        ('FINISH_T', 'U4'),
+        ('PART_CNT', 'U4'),
+        ('RTST_CNT', 'U4'),
+        ('ABRT_CNT', 'U4'),
+        ('GOOD_CNT', 'U4'),
+        ('FUNC_CNT', 'U4'),
+        ('WAFER_ID', 'Cn'),
+        ('FABWF_ID', 'Cn'),
+        ('FRAME_ID', 'Cn'),
+        ('MASK_ID', 'Cn'),
+        ('USR_DESC', 'Cn'),
+        ('EXC_DESC', 'Cn')
+    )
+
+
+class Wcr:
+    name = "Wcr"
+    typ = 2
+    sub = 30
+    fieldMap = (
+        ('WAFR_SIZ', 'R4'),
+        ('DIE_HT', 'R4'),
+        ('DIE_WID', 'R4'),
+        ('WF_UNITS', 'U1'),
+        ('WF_FLAT', 'C1'),
+        ('CENTER_X', 'I2'),
+        ('CENTER_Y', 'I2'),
+        ('POS_X', 'C1'),
+        ('POS_Y', 'C1')
+    )
+
+
+class Pir:
+    name = "Pir"
+    typ = 5
+    sub = 10
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1')
+    )
+
+
+class Prr:
+    name = "Prr"
+    typ = 5
+    sub = 20
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('PART_FLG', 'B1'),
+        ('NUM_TEST', 'U2'),
+        ('HARD_BIN', 'U2'),
+        ('SOFT_BIN', 'U2'),
+        ('X_COORD', 'I2'),
+        ('Y_COORD', 'I2'),
+        ('TEST_T', 'U4'),
+        ('PART_ID', 'Cn'),
+        ('PART_TXT', 'Cn'),
+        ('PART_FIX', 'Bn')
+    )
+
+
+class Tsr:
+    name = "Tsr"
+    typ = 10
+    sub = 30
+    fieldMap = (
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('TEST_TYP', 'C1'),
+        ('TEST_NUM', 'U4'),
+        ('EXEC_CNT', 'U4'),
+        ('FAIL_CNT', 'U4'),
+        ('ALRM_CNT', 'U4'),
+        ('TEST_NAM', 'Cn'),
+        ('SEQ_NAME', 'Cn'),
+        ('TEST_LBL', 'Cn'),
+        ('OPT_FLAG', 'B1'),
+        ('TEST_TIM', 'R4'),
+        ('TEST_MIN', 'R4'),
+        ('TEST_MAX', 'R4'),
+        ('TST_SUMS', 'R4'),
+        ('TST_SQRS', 'R4')
+    )
+
+
+class Ptr:
+    name = "Ptr"
+    typ = 15
+    sub = 10
+    fieldMap = (
+        ('TEST_NUM', 'U4'),
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('TEST_FLG', 'B1'),
+        ('PARM_FLG', 'B1'),
+        ('RESULT', 'R4'),
+        ('TEST_TXT', 'Cn'),
+        ('ALARM_ID', 'Cn'),
+        ('OPT_FLAG', 'B1'),
+        ('RES_SCAL', 'I1'),
+        ('LLM_SCAL', 'I1'),
+        ('HLM_SCAL', 'I1'),
+        ('LO_LIMIT', 'R4'),
+        ('HI_LIMIT', 'R4'),
+        ('UNITS', 'Cn'),
+        ('C_RESFMT', 'Cn'),
+        ('C_LLMFMT', 'Cn'),
+        ('C_HLMFMT', 'Cn'),
+        ('LO_SPEC', 'R4'),
+        ('HI_SPEC', 'R4')
+    )
+
+
+class Mpr:
+    name = "Mpr"
+    typ = 15
+    sub = 15
+    fieldMap = (
+        ('TEST_NUM', 'U4'),
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('TEST_FLG', 'B1'),
+        ('PARM_FLG', 'B1'),
+        ('RTN_ICNT', 'U2'),
+        ('RSLT_CNT', 'U2'),
+        ('RTN_STAT', 'K5N1'),
+        ('RTN_RSLT', 'K6R4'),
+        ('TEST_TXT', 'Cn'),
+        ('ALARM_ID', 'Cn'),
+        ('OPT_FLAG', 'B1'),
+        ('RES_SCAL', 'I1'),
+        ('LLM_SCAL', 'I1'),
+        ('HLM_SCAL', 'I1'),
+        ('LO_LIMIT', 'R4'),
+        ('HI_LIMIT', 'R4'),
+        ('START_IN', 'R4'),
+        ('INCR_IN', 'R4'),
+        ('RTN_INDX', 'K5U2'),
+        ('UNITS', 'Cn'),
+        ('UNITS_IN', 'Cn'),
+        ('C_RESFMT', 'Cn'),
+        ('C_LLMFMT', 'Cn'),
+        ('C_HLMFMT', 'Cn'),
+        ('LO_SPEC', 'R4'),
+        ('HI_SPEC', 'R4')
+    )
+
+
+class Ftr:
+    name = "Ftr"
+    typ = 15
+    sub = 20
+    fieldMap = (
+        ('TEST_NUM', 'U4'),
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('TEST_FLG', 'B1'),
+        ('OPT_FLAG', 'B1'),
+        ('CYCL_CNT', 'U4'),
+        ('REL_VADR', 'U4'),
+        ('REPT_CNT', 'U4'),
+        ('NUM_FAIL', 'U4'),
+        ('XFAIL_AD', 'I4'),
+        ('YFAIL_AD', 'I4'),
+        ('VECT_OFF', 'I2'),
+        ('RTN_ICNT', 'U2'),
+        ('PGM_ICNT', 'U2'),
+        ('RTN_INDX', 'K12U2'),
+        ('RTN_STAT', 'K12N1'),
+        ('PGM_INDX', 'K13U2'),
+        ('PGM_STAT', 'K13N1'),
+        ('FAIL_PIN', 'Dn'),
+        ('VECT_NAM', 'Cn'),
+        ('TIME_SET', 'Cn'),
+        ('OP_CODE', 'Cn'),
+        ('TEST_TXT', 'Cn'),
+        ('ALARM_ID', 'Cn'),
+        ('PROG_TXT', 'Cn'),
+        ('RSLT_TXT', 'Cn'),
+        ('PATG_NUM', 'U1'),
+        ('SPIN_MAP', 'Dn')
+    )
+
+
+class Bps:
+    name = "Bps"
+    typ = 20
+    sub = 10
+    fieldMap = (
+        ('SEQ_NAME', 'Cn'),
+    )
+
+
+class Eps:
+    name = "Eps"
+    typ = 20
+    sub = 20
+    fieldMap = ()
+
+
+class Gdr:
+    name = "Gdr"
+    typ = 50
+    sub = 10
+    fieldMap = (
+        ('GEN_DATA', 'Vn'),
+    )
+
+
+class Dtr:
+    name = "Dtr"
+    typ = 50
+    sub = 30
+    fieldMap = (
+        ('TEXT_DAT', 'Cn'),
+    )
+
+
+class Vur:
+    name = "Vur"
+    typ = 0
+    sub = 30
+    fieldMap = (
+        ('UPD_CNT', 'U1'),
+        ('UPD_NAM', 'K0Cn'),
+        ('VUR_DUMMY', 'U1'),
+    )
+
+
+class Psr:
+    name = "Psr"
+    typ = 1
+    sub = 90
+    fieldMap = (
+        ('CONT_FLG', 'B1'),
+        ('PSR_INDX', 'U2'),
+        ('PSR_NAM', 'Cn'),
+        ('OPT_FLG', 'B1'),
+        ('TOTP_CNT', 'U2'),
+        ('LOCP_CNT', 'U2'),
+        ('PAT_BGN', 'K5U8'),
+        ('PAT_END', 'K5U8'),
+        ('PAT_FILE', 'K5Cn'),
+        ('PAT_LBL', 'K5Cn'),
+        ('FILE_UID', 'K5Cn'),
+        ('ATPG_DSC', 'K5Cn'),
+        ('SRC_ID', 'K5Cn')
+    )
+
+
+class Str:
+    """ Scan Test Record(STR) """
+    name = "Str"
+    typ = 15
+    sub = 30
+    fieldMap = (
+        ('CONT_FLG', 'B1'),
+        ('TEST_NUM', 'U4'),
+        ('HEAD_NUM', 'U1'),
+        ('SITE_NUM', 'U1'),
+        ('PSR_REF', 'U2'),
+        ('TEST_FLG', 'B1'),
+        ('LOG_TYP', 'Cn'),
+        ('TEST_TXT', 'Cn'),
+        ('ALARM_ID', 'Cn'),
+        ('PROG_TXT', 'Cn'),
+        ('RSLT_TXT', 'Cn'),
+        ('Z_VAL', 'U1'),
+        ('FMU_FLG', 'B1'),
+        ('MASK_MAP', 'Dn'),
+        ('FAL_MAP', 'Dn'),
+        ('CYC_CNT', 'U8'),
+        ('TOTF_CNT', 'U4'),
+        ('TOTL_CNT', 'U4'),
+        ('CYC_BASE', 'U8'),
+        ('BIT_BASE', 'U4'),
+        ('COND_CNT', 'U2'),
+        ('LIM_CNT', 'U2'),
+        ('CYC_SIZE', 'U1'),
+        ('PMR_SIZE', 'U1'),
+        ('CHN_SIZE', 'U1'),
+        ('PAT_SIZE', 'U1'),
+        ('BIT_SIZE', 'U1'),
+        ('U1_SIZE', 'U1'),
+        ('U2_SIZE', 'U1'),
+        ('U3_SIZE', 'U1'),
+        ('UTX_SIZE', 'U1'),
+        ('CAP_BGN', 'U2'),
+        ('LIM_INDX', 'K21U2'),
+        ('LIM_SPEC', 'K21U4'),
+        ('COND_LST', 'K20Cn'),
+        ('CYCO_CNT', 'U2'),
+        ('CYC_OFST', 'K35U8'),
+        ('PMR_CNT', 'U2'),
+        ('PMR_INDX', 'K37U2'),
+        ('CHN_CNT', 'U2'),
+        ('CHN_NUM', 'K39U1'),
+        ('EXP_CNT', 'U2'),
+        ('EXP_DATA', 'K41U1'),
+        ('CAP_CNT', 'U2'),
+        ('CAP_DATA', 'K43U1'),
+        ('NEW_CNT', 'U2'),
+        ('NEW_DATA', 'K45U1'),
+        ('PAT_CNT', 'U2'),
+        ('PAT_NUM', 'K47U1'),
+        ('BPOS_CNT', 'U2'),
+        ('BIT_POS', 'K49U1'),
+        ('USR1_CNT', 'U2'),
+        ('USR1', 'K51U1'),
+        ('USR2_CNT', 'U2'),
+        ('USR2', 'K53U1'),
+        ('USR3_CNT', 'U2'),
+        ('USR3', 'K55U1'),
+        ('TXT_CNT', 'U2'),
+        ('USER_TXT', 'K57U1')
+    )
+
+
+Records = [Far(), Atr(), Mir(), Mrr(), Pcr(), Hbr(), Sbr(), Pmr(), Pgr(),
+           Plr(), Rdr(), Sdr(), Wir(), Wrr(), Wcr(), Pir(), Prr(),
+           Tsr(), Ptr(), Mpr(), Ftr(), Bps(), Eps(), Gdr(), Dtr(), Vur(), Psr(), Str()]
+
+rec_dict: Dict[Tuple[int, int], any] = {(r.typ, r.sub): r for r in Records}

@@ -1,6 +1,5 @@
 import asyncio
-from stdf_pub import StdfPub
-from stdf_sub import StdfSub
+from stdfparser import StdfPub, StdfSub
 
 
 def test_record_publisher_success():

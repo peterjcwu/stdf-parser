@@ -1,5 +1,5 @@
 import re
-from stdf_sub import StdfSub
+from .stdf_sub import StdfSub
 
 
 class StdfSubFilter(StdfSub):

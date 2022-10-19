@@ -1,5 +1,5 @@
-from parse import parse
-from stdf_sub_wlan_sweep import StdfSubWlanSweep
+from stdfparser.parse import parse
+from stdfparser.stdf_sub_wlan_sweep import StdfSubWlanSweep
 
 
 def test_stdf_sub_wlan_sweep_success():

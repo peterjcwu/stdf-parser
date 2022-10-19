@@ -1,8 +1,6 @@
 import logging
 from typing import Tuple
-from util import Publisher
-from util.file_pointer import FilePointer
-from util import unp
+from .util import Publisher, FilePointer, unp
 
 
 class StdfPub(Publisher):

@@ -1,5 +1,5 @@
-from parse import parse
-from stdf_sub_txt import StdfSubTxt
+from stdfparser.parse import parse
+from stdfparser.stdf_sub_txt import StdfSubTxt
 
 
 def test_record_filter_success():

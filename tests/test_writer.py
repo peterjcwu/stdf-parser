@@ -1,4 +1,4 @@
-from stdf import DTR
+from stdfparser.stdf import DTR
 from Semi_ATE import STDF
 
 

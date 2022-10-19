@@ -2,8 +2,8 @@ import sys
 import math
 import logging
 from typing import Tuple
-from stdf_V4 import rec_dict
-from util import Subscriber, unp
+from .stdf_V4 import rec_dict
+from .util import Subscriber, unp
 
 
 class StdfSub(Subscriber):

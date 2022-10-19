@@ -1,6 +1,7 @@
 import struct
 import gzip
 from .pubsub import Publisher, Subscriber
+from .file_pointer import FilePointer
 
 ENDIAN = '<'  # only support cpu-type == 2
 

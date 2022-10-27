@@ -1,0 +1,5 @@
+pymongo~=4.3.2
+plotly~=5.9.0
+dash~=2.5.1
+pandas~=1.2.4
+matplotlib~=3.3.4

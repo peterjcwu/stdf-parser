@@ -1,9 +1,11 @@
+import os
 import asyncio
-from stdfparser import StdfPub, StdfSub
+from stdfparser import StdfPub
 
 
-def parse(stdf_path: str, s: StdfSub):
+def parse(project_name: str, stdf_path: str, stdf_sub_class):
     p = StdfPub(stdf_path)
+    s = stdf_sub_class(project_name, os.path.basename(stdf_path).split(".")[0])
     p.register(s)
 
     loop = asyncio.get_event_loop()
@@ -16,4 +18,4 @@ def parse(stdf_path: str, s: StdfSub):
 
 if __name__ == '__main__':
     from stdf_sub import StdfSub
-    parse(r"C:\log\w224_wlan_sweep\wlan_sweep\stdf\sweep.stdf", StdfSub("StdfSub"))
+    parse("test", r"C:\log\w224_wlan_sweep\wlan_sweep\stdf\sweep.stdf", StdfSub)

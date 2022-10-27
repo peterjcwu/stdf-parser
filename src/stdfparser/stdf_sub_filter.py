@@ -7,7 +7,7 @@ class StdfSubFilter(StdfSub):
         StdfSub.__init__(self, name)
         self.fp = open(mod_stdf_path, "wb")
 
-    def _take(self):
+    def post_process(self):
         if self.cur_rec.name == "Dtr":
             text = self.data["TEXT_DAT"].decode()
             if re.search(r"COND:.*(wmark|alarm)=", text) or re.search("CHARINFO", text):

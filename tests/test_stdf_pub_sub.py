@@ -3,7 +3,7 @@ from stdfparser import StdfPub, StdfSub
 
 
 def test_record_publisher_success():
-    stdf_path = r"C:\log\w224_wlan_sweep\wlan_sweep\stdf\sweep.stdf"
+    # stdf_path = r"C:\log\w224_wlan_sweep\wlan_sweep\stdf\sweep.stdf"
 
     p = StdfPub(stdf_path)
     s = StdfSub("base")

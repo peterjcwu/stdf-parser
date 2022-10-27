@@ -1,5 +1,5 @@
 import os
-from stdf_sub import StdfSub
+from stdfparser import StdfSub
 
 
 class StdfSubTxt(StdfSub):
@@ -7,7 +7,7 @@ class StdfSubTxt(StdfSub):
         StdfSub.__init__(self, name)
         self.fp = open(mod_stdf_path, "w", newline="")
 
-    def _take(self):
+    def post_process(self):
         self.fp.write(f'======= {self.cur_rec.name} =======' + os.linesep)
         for field_name, data_type in self.cur_rec.fieldMap:
             self.fp.write(f'< {self.cur_rec.name} >  :  {field_name} ---> {self.data[field_name]}' + os.linesep)

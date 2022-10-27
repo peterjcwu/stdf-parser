@@ -2,13 +2,14 @@ import sys
 import math
 import logging
 from typing import Tuple
-from .stdf_V4 import rec_dict
-from .util import Subscriber, unp
+from stdfparser.stdf_V4 import rec_dict
+from stdfparser.util import Subscriber, unp
 
 
 class StdfSub(Subscriber):
     def __init__(self, name: str):
         Subscriber.__init__(self, name)
+        self.name = name  # stdf filename
         self.cur_rec = None
         self.data = {}
         self._head_buf: bytes = b''
@@ -32,9 +33,9 @@ class StdfSub(Subscriber):
         for field_name, data_type in self.cur_rec.fieldMap:
             v, buf = self._get_parse_func(data_type)(data_type, buf)
             self.data[field_name] = v
-        self._take()
+        self.post_process()
 
-    def _take(self):
+    def post_process(self):
         print(f'======= {self.cur_rec.name} =======')
         for field_name, data_type in self.cur_rec.fieldMap:
             print(f'< {self.cur_rec.name} >  :  {field_name} ---> {self.data[field_name]}')

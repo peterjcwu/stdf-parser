@@ -1,29 +1,25 @@
 import os
+from typing import Optional
+
 import pymongo
-_conns = {}
 
 
 class DBConn:
-    @staticmethod
-    def get_client(name: str) -> pymongo.MongoClient:
-        def _get():
-            if name == "ENG":
-                return pymongo.MongoClient()
+    def __init__(self, project_name: str, stdf_path: str):
+        self.project_name: str = project_name
+        self.stdf_path = stdf_path
+        self.client = pymongo.MongoClient(os.getenv("DB_CONN_STR"))
+        self.db = self.client[project_name]
+        self.collection_mir = self.db["mir"]
+        self.collection_ptr = self.db["ptr"]
+        self.collection_prr = self.db["prr"]
 
-            if name == "PROD":
-                user = os.environ['DBUSER']
-                pwd = os.environ['DBPWD']
-                host = os.environ['DBHOST']
-                auth_src = os.environ["DBAUTHSRC"]
-                conn_str = f"mongodb://{user}:{pwd}@{host}/?authSource={auth_src}"
-                return pymongo.MongoClient(conn_str, serverSelectionTimeoutMS=3000)
+    @property
+    def stdf_name(self) -> str:
+        return os.path.basename(self.stdf_path).split(".")[0]
 
-        if name not in _conns:
-            _conns[name] = _get()
-
-        return _conns[name]
-
-
-if __name__ == '__main__':
-    client = DBConn.get_client("ENG")
-    print(client.list_database_names())
+    def get_mir_id(self) -> Optional[str]:
+        for row in self.collection_mir.find({"stdf_name": self.stdf_name}).sort([("_id", -1)]).limit(1):
+            return str(row["_id"])
+        else:
+            return None

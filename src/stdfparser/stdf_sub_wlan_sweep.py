@@ -4,8 +4,7 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from bson import ObjectId
 from .stdf_sub import StdfSub
-from .db import DBConn
-client = DBConn.get_client("ENG")
+from . import DBConn
 
 
 class BaseRow:
@@ -58,35 +57,40 @@ class PtrRow(BaseRow):
 
 
 class StdfSubWlanSweep(StdfSub):
-    def __init__(self, project_name: str, stdf_name: str):
-        StdfSub.__init__(self, stdf_name)
-        self.job_name = ""  # updated from MIR
+    def __init__(self, db_conn: DBConn):
+        StdfSub.__init__(self, db_conn.stdf_name)
+        self.db_conn = db_conn
         self.mir_id = ObjectId()
         self.cur_tag = defaultdict(dict)  # site -> tag
         self.cur_suite: str = ""
         self._die_id: int = 0
         self._cache: Dict[int, List[PtrRow]] = defaultdict(list)
-        self._previous_rec_name = ""
-        self._handlers = {
+        self._previous_rec_name: str = ""
+        self._handlers: dict = {
             "Ptr": self.ptr_handler,
             "Dtr": self.dtr_handler,
             "Prr": self.prr_handler,
             "Mir": self.mir_handler,
         }
-        # db
-        self.collection_mir = client[project_name]["mir"]
-        self.collection_ptr = client[project_name]["ptr"]
-        self.collection_prr = client[project_name]["prr"]
+        self._bypass = self.db_conn.get_mir_id() is not None
 
     def _rec_filter(self) -> bool:
         return self.cur_rec.name in self._handlers.keys()
 
     def post_process(self):
+        if self._bypass:
+            return
         if self.cur_rec.name in self._handlers.keys():
             self._handlers[self.cur_rec.name]()
 
+    def on_listen_end(self):
+        if self._bypass:
+            print(f"stdf is {self.db_conn.stdf_name} already parsed; mir_id={self.db_conn.get_mir_id()}")
+        else:
+            print(f"parse stdf {self.db_conn.stdf_name} successfully; mir_id={self.db_conn.get_mir_id()}")
+
     def mir_handler(self):
-        res = self.collection_mir.insert_one(MirRow(self.data, self.name).as_dict())
+        res = self.db_conn.collection_mir.insert_one(MirRow(self.data, self.name).as_dict())
         self.mir_id = res.inserted_id
         self._previous_rec_name = "Mir"
 
@@ -128,13 +132,13 @@ class StdfSubWlanSweep(StdfSub):
 
     def prr_handler(self) -> None:
         prr_row = PrrRow(self.data, self.mir_id)
-        res = self.collection_prr.insert_one(prr_row.as_dict())
+        res = self.db_conn.collection_prr.insert_one(prr_row.as_dict())
         prr_id = res.inserted_id
 
         ptr_row_dicts = [c.update_key(self.mir_id, prr_id).as_dict()
                          for c in self._cache.get(prr_row.site, [])]
 
         if len(ptr_row_dicts) > 0:
-            self.collection_ptr.insert_many(ptr_row_dicts, ordered=False)
+            self.db_conn.collection_ptr.insert_many(ptr_row_dicts, ordered=False)
 
         self._previous_rec_name = "Prr"

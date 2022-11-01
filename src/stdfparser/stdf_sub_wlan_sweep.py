@@ -72,22 +72,16 @@ class StdfSubWlanSweep(StdfSub):
             "Prr": self.prr_handler,
             "Mir": self.mir_handler,
         }
-        self._bypass = self.db_conn.get_mir_id() is not None
 
     def _rec_filter(self) -> bool:
         return self.cur_rec.name in self._handlers.keys()
 
     def post_process(self):
-        if self._bypass:
-            return
         if self.cur_rec.name in self._handlers.keys():
             self._handlers[self.cur_rec.name]()
 
     def on_listen_end(self):
-        if self._bypass:
-            print(f"stdf is {self.db_conn.stdf_name} already parsed; mir_id={self.db_conn.get_mir_id()}")
-        else:
-            print(f"parse stdf {self.db_conn.stdf_name} successfully; mir_id={self.db_conn.get_mir_id()}")
+        print(f"parse stdf {self.db_conn.stdf_name} successfully; mir_id={self.db_conn.get_mir_id()}")
 
     def mir_handler(self):
         res = self.db_conn.collection_mir.insert_one(MirRow(self.data, self.name).as_dict())

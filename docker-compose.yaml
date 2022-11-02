@@ -1,0 +1,19 @@
+version: "3.3"
+
+services:
+  web:
+    build: .
+    ports:
+      - 8888:8888
+    environment:
+      - DB_CONN_STR=mongodb://db
+
+  db:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - db_data:/data/db
+
+volumes:
+  db_data:

@@ -5,6 +5,7 @@ from datetime import datetime
 from bson import ObjectId
 from .stdf_sub import StdfSub
 from . import DBConn
+from .util import get_stdf_name
 
 
 class BaseRow:
@@ -34,9 +35,8 @@ class PrrRow(BaseRow):
 
 
 class PtrRow(BaseRow):
-    def __init__(self, d: dict, tag: str, suite: str):
+    def __init__(self, d: dict, tag: str):
         self.tag: str = tag
-        self.suite: str = suite
         self.mir_id: Optional[ObjectId] = None
         self.prr_id: Optional[ObjectId] = None
         self.t_num: int = d["TEST_NUM"]
@@ -56,13 +56,13 @@ class PtrRow(BaseRow):
         return f"{self.t_num}:{self.text}:{self.v}"
 
 
-class StdfSubWlanSweep(StdfSub):
-    def __init__(self, db_conn: DBConn):
-        StdfSub.__init__(self, db_conn.stdf_name)
+class StdfSubWlan(StdfSub):
+    def __init__(self, db_conn: DBConn, stdf_path: str, rec_filter=None):
+        StdfSub.__init__(self, stdf_path=stdf_path)
         self.db_conn = db_conn
+        self._rec_filter = rec_filter
         self.mir_id = ObjectId()
         self.cur_tag = defaultdict(dict)  # site -> tag
-        self.cur_suite: str = ""
         self._die_id: int = 0
         self._cache: Dict[int, List[PtrRow]] = defaultdict(list)
         self._previous_rec_name: str = ""
@@ -73,18 +73,22 @@ class StdfSubWlanSweep(StdfSub):
             "Mir": self.mir_handler,
         }
 
-    def _rec_filter(self) -> bool:
-        return self.cur_rec.name in self._handlers.keys()
+    def rec_filter(self) -> bool:
+        if self.cur_rec.name not in self._handlers.keys():
+            return False
+        if self._rec_filter is None:
+            return True
+        return self._rec_filter(self.data)
 
     def post_process(self):
         if self.cur_rec.name in self._handlers.keys():
             self._handlers[self.cur_rec.name]()
 
     def on_listen_end(self):
-        print(f"parse stdf {self.db_conn.stdf_name} successfully; mir_id={self.db_conn.get_mir_id()}")
+        print(f"parse stdf {self.stdf_name} successfully; mir_id={self.db_conn.get_mir_id(self.stdf_name)}")
 
     def mir_handler(self):
-        res = self.db_conn.collection_mir.insert_one(MirRow(self.data, self.name).as_dict())
+        res = self.db_conn.collection_mir.insert_one(MirRow(self.data, self.stdf_name).as_dict())
         self.mir_id = res.inserted_id
         self._previous_rec_name = "Mir"
 
@@ -96,21 +100,14 @@ class StdfSubWlanSweep(StdfSub):
                 self.cur_tag[site][key] = val
             self._previous_rec_name = "Log"
 
-        def test_suite_handler(test_suite_name: str):
-            self.cur_suite = test_suite_name
-            self._previous_rec_name = "Suite"
-
         # Log
         text = self.data["TEXT_DAT"].decode()
         if m := re.search(r"Log:(?P<field>\w+)=\[(?P<site_val>.*)]", text):
             log_handler(m.group("field"), m.group("site_val"))
-        # Test suite
-        elif re.search(r"^Main\.\w+", text):
-            test_suite_handler(text)
 
     def ptr_handler(self) -> None:
         site = self.data["SITE_NUM"]
-        self._cache[site].append(PtrRow(self.data, self._get_tag_str(site), self.cur_suite))
+        self._cache[site].append(PtrRow(self.data, self._get_tag_str(site)))
         self._previous_rec_name = "Ptr"
 
     def _get_tag_str(self, site: int) -> str:

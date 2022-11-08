@@ -3,13 +3,13 @@ import math
 import logging
 from typing import Tuple
 from stdfparser.stdf_V4 import rec_dict
-from stdfparser.util import Subscriber, unp
+from stdfparser.util import Subscriber, unp, get_stdf_name
 
 
 class StdfSub(Subscriber):
-    def __init__(self, name: str):
-        Subscriber.__init__(self, name)
-        self.name = name  # stdf filename
+    def __init__(self, stdf_path: str):
+        Subscriber.__init__(self)
+        self.stdf_name = get_stdf_name(stdf_path)
         self.cur_rec = None
         self.data = {}
         self._head_buf: bytes = b''
@@ -24,7 +24,7 @@ class StdfSub(Subscriber):
 
         # update self.cur_rec
         self.cur_rec = rec_dict[(typ, sub)]
-        if not self._rec_filter():
+        if not self.rec_filter():
             return
 
         # lookup file-map to construct self.data
@@ -40,7 +40,7 @@ class StdfSub(Subscriber):
         for field_name, data_type in self.cur_rec.fieldMap:
             print(f'< {self.cur_rec.name} >  :  {field_name} ---> {self.data[field_name]}')
 
-    def _rec_filter(self) -> bool:
+    def rec_filter(self) -> bool:
         return True  # all pass
 
     def _get_parse_func(self, fmt):

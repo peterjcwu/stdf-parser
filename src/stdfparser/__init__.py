@@ -1,7 +1,8 @@
 from .stdf_pub import StdfPub
 from .stdf_sub import StdfSub
 from .db import DBConn
-from .stdf_sub_wlan_sweep import StdfSubWlanSweep
+from .stdf_sub_wlan import StdfSubWlan
+
 import asyncio
 
 # nest asyncio for jupyter

@@ -1,5 +1,6 @@
 from typing import List, Dict
 from stdfparser import DBConn
+from stdfparser.util import get_stdf_name
 
 
 def pipeline_get_ptr(stdf_name: str) -> list:
@@ -16,8 +17,8 @@ def pipeline_get_ptr(stdf_name: str) -> list:
     ]
 
 
-def get_records_v11(db_conn: DBConn, suite_name: str) -> List[dict]:
-    pipeline = pipeline_get_ptr(db_conn.stdf_name)
+def get_records_v11(db_conn: DBConn, suite_name: str, stdf_path) -> List[dict]:
+    pipeline = pipeline_get_ptr(get_stdf_name(stdf_path))
     pipeline.extend([
         # filter
         {"$match": {"ptr.suite": suite_name}},
@@ -59,8 +60,8 @@ def get_records_v11(db_conn: DBConn, suite_name: str) -> List[dict]:
     return rows
 
 
-def get_records_svc(db_conn: DBConn, text: str) -> Dict[int, float]:
-    pipeline = pipeline_get_ptr(db_conn.stdf_name)
+def get_records_svc(db_conn: DBConn, text: str, stdf_path: str) -> Dict[int, float]:
+    pipeline = pipeline_get_ptr(stdf_path)
     pipeline.extend([
         {"$match": {"ptr.text": text}},
         {"$project": {

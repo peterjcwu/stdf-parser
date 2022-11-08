@@ -1,5 +1,6 @@
-import struct
+import os
 import gzip
+import struct
 from .pubsub import Publisher, Subscriber
 from .file_pointer import FilePointer
 
@@ -9,6 +10,10 @@ ENDIAN = '<'  # only support cpu-type == 2
 def unp(fmt, buf):
     r, = struct.unpack(ENDIAN + fmt, buf)
     return r
+
+
+def get_stdf_name(stdf_path: str) -> str:
+    return os.path.basename(stdf_path).split(".")[0]
 
 
 class GenericOpen:

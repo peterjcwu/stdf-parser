@@ -3,8 +3,8 @@ from typing import Set, Optional
 
 
 class Subscriber:
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, _id: str = ""):
+        self._id: str = _id
         self.queue = asyncio.Queue()
 
     async def listen(self):
@@ -16,10 +16,10 @@ class Subscriber:
         self.on_listen_end()
 
     def _process(self, msg):
-        print(f"{self.name} is processing {msg}")
+        print(f"{self._id} is processing {msg}")
 
     def on_listen_end(self):
-        print(f"{self.name} ends listening...")
+        print(f"{self._id} ends listening...")
 
 
 class Publisher:

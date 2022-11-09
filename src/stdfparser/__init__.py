@@ -3,9 +3,9 @@ from .stdf_sub import StdfSub
 from .db import DBConn
 from .stdf_sub_wlan import StdfSubWlan
 
-import asyncio
 
 # nest asyncio for jupyter
+import asyncio
 import nest_asyncio
 nest_asyncio.apply()
 

@@ -5,7 +5,6 @@ from datetime import datetime
 from bson import ObjectId
 from .stdf_sub import StdfSub
 from . import DBConn
-from .util import get_stdf_name
 
 
 class BaseRow:
@@ -130,6 +129,6 @@ class StdfSubWlan(StdfSub):
                          for c in self._cache.get(prr_row.site, [])]
 
         if len(ptr_row_dicts) > 0:
-            self.db_conn.collection_ptr.insert_many(ptr_row_dicts, ordered=False)
+            self.db_conn.collection_ptr.insert_many(ptr_row_dicts, ordered=True)
 
         self._previous_rec_name = "Prr"

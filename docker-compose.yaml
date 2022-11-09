@@ -6,8 +6,9 @@ services:
     ports:
       - 8888:8888
     environment:
-      - DB_CONN_STR=mongodb://db
-
+      - DB_URL=mongodb://db
+    volumes:
+      - lab:/opt/lab
   db:
     image: mongo
     ports:
@@ -17,3 +18,4 @@ services:
 
 volumes:
   db_data:
+  lab:

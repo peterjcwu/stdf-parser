@@ -6,16 +6,19 @@ services:
     ports:
       - 8888:8888
     environment:
-      - DB_URL=mongodb://db
+      - DB_URL=mongodb://<username>:<password>@db
     volumes:
-      - lab:/opt/lab
+      - jupyter_lab:/ops/lab
   db:
     image: mongo
     ports:
       - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=<username>
+      - MONGO_INITDB_ROOT_PASSWORD=<password>
     volumes:
-      - db_data:/data/db
+      - mongo_data:/data/db
 
 volumes:
-  db_data:
-  lab:
+  mongo_data:
+  jupyter_lab:

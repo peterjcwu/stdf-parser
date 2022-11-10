@@ -3,6 +3,7 @@ import re
 import pandas as pd
 from bson.objectid import ObjectId
 from dataclasses import dataclass
+from collections import defaultdict
 from typing import List, Tuple
 from stdfparser import StdfPub, StdfSubWlan, DBConn, parse
 from stdfparser.util import get_stdf_name
@@ -77,7 +78,7 @@ class Pipeline:
                 "_id": {
                     "part_id": "$prr.part_id",
                     "site": "$prr.site",
-                    "tag": "$tag",
+                    "tag": "$ptr.tag",
                     "text": "$ptr.text"
                 },
                 "rssi_min": {"$min": "$ptr.v"},
@@ -123,10 +124,25 @@ class Query:
             
         return self.db_conn.get_mir_id(get_stdf_name(stdf_path))
     
-    def get_df(self, params: List[QueryParam], extra_pipeline: str, _pipelines: list=None) -> pd.DataFrame:
+    def get_df(self, params: List[QueryParam], extra_pipeline: str="", _pipelines: list=None) -> pd.DataFrame:
         return pd.concat([self.get_df_one(p, extra_pipeline, _pipelines) for p in params])
         
     def get_df_one(self, p: QueryParam, extra_pipeline: str, _pipelines: list) -> pd.DataFrame:
         self._parse(os.path.join(os.path.abspath(""), p.stdf_name))
         pipeline = Pipeline.get(p, extra_pipeline, _pipelines)
         return pd.DataFrame(row for row in self.db_conn.collection_mir.aggregate(pipeline))
+
+    
+def unwind_tag(df: pd.DataFrame) -> pd.DataFrame:
+    tag_dict = defaultdict(list)  
+    for tag in df["tag"]:
+        for token in tag.split(";"):
+            kv = token.split("=")
+            if len(kv) != 2:
+                continue
+            k, v = kv
+            tag_dict[k].append(float(v))
+
+    for k, vs in tag_dict.items():
+        df[k.lower()] = vs
+    return df

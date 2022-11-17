@@ -154,3 +154,4 @@ cython_debug/
 .
 *.stdf.gz
 /lab/plot.html
+/lab/firecrest/celerybeat-schedule.bak

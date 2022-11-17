@@ -22,9 +22,10 @@ class MirRow(BaseRow):
 
 
 class PrrRow(BaseRow):
-    def __init__(self, d: dict):
+    def __init__(self, d: dict, mir_id: ObjectId):
+        self.mir_id: ObjectId = mir_id
         self.site: int = d["SITE_NUM"]
-        # self.num_test: int = d["NUM_TEST"]
+        self.num_test: int = d["NUM_TEST"]
         self.x: int = d["X_COORD"]
         self.y: int = d["Y_COORD"]
         self.sb: int = d["SOFT_BIN"]
@@ -121,19 +122,16 @@ class StdfSubEmbeddedDoc(StdfSub):
         return ";".join(tags)
 
     def prr_handler(self) -> None:
-        prr_row = PrrRow(self.data)
-        res = self.db_conn.collection_prr.insert_one(prr_row.as_dict())
-        # prr_id = res.inserted_id
+        prr_row = PrrRow(self.data, self.mir_id)
+        prr_id = self.db_conn.collection_prr.insert_one(prr_row.as_dict()).inserted_id
 
-        # ptr_row_dicts = [c.update_key(self.mir_id, prr_id).as_dict()
-        #                  for c in self._cache1.get(prr_row.site, [])]
-
-        # if len(ptr_row_dicts) > 0:
-        #     self.db_conn.collection_ptr.insert_many(ptr_row_dicts, ordered=True)
         # move from cache1 to cache2
         assert prr_row.site in self._cache1.keys()
         for ptr_row in self._cache1.pop(prr_row.site):
             if ptr_row.text not in self._cache2.keys():
+                row = {"prr_id": prr_id, "vt_list": [{"v": ptr_row.v, "t": ptr_row.tag}]}
+                rows = [None] * (prr_row.i + 1)
+                rows[prr_row.i] = row
                 self._cache2[ptr_row.text] = {
                     "mir_id": self.mir_id,
                     "text": ptr_row.text,
@@ -141,9 +139,15 @@ class StdfSubEmbeddedDoc(StdfSub):
                     "lo_lim": ptr_row.lo_lim,
                     "t_num": ptr_row.t_num,
                     "unit": ptr_row.unit,
-                    "rows": [{"v": ptr_row.v, "t": ptr_row.tag, **(prr_row.as_dict())}]
+                    "rows": rows,
                 }
             else:
-                self._cache2[ptr_row.text]["rows"].append({"v": ptr_row.v, "t": ptr_row.tag, **(prr_row.as_dict())})
+                rows = self._cache2[ptr_row.text]["rows"]
+                while len(rows) <= prr_row.i:
+                    rows += [None] * len(rows)
+                if rows[prr_row.i] is None:
+                    rows[prr_row.i] = {"prr_id": prr_id, "vt_list": [{"v": ptr_row.v, "t": ptr_row.tag}]}
+                else:
+                    rows[prr_row.i]["vt_list"].append({"v": ptr_row.v, "t": ptr_row.tag})
 
         self._previous_rec_name = "Prr"

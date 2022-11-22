@@ -12,6 +12,13 @@ def unp(fmt, buf):
     return r
 
 
+def is_num(v) -> bool:
+    try:
+        float(v)
+        return True
+    except ValueError:
+        return False
+
 def get_stdf_name(stdf_path: str) -> str:
     return os.path.basename(stdf_path).split(".")[0]
 

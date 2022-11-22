@@ -1,8 +1,10 @@
+from bson import ObjectId
+
 from .stdf_pub import StdfPub
 from .stdf_sub import StdfSub
 from .db import DBConn
 from .stdf_sub_wlan import StdfSubWlan
-
+from .stdf_sub_embedded_doc import StdfSubEmbeddedDoc
 
 # nest asyncio for jupyter
 import asyncio
@@ -18,7 +20,6 @@ def parse(pub: StdfPub, sub: StdfSub):
             pub.parse(),
             sub.listen(),
         ))
-
 
 if __name__ == '__main__':
     p = StdfPub(r"C:\log\w224_wlan_sweep\wlan_sweep\stdf\sweep.stdf")

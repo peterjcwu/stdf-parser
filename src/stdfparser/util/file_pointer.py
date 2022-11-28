@@ -1,4 +1,6 @@
+import bz2
 import gzip
+from zipfile import ZipFile
 
 
 class FilePointer:
@@ -9,8 +11,13 @@ class FilePointer:
     def __enter__(self):
         if self.file_path.endswith(".gz"):
             self.fp = gzip.open(self.file_path)
+
+        elif self.file_path.endswith(".bz2"):
+            self.fp = bz2.open(self.file_path)
+
         else:
             self.fp = open(self.file_path, "rb")
+
         return self.fp
 
     def __exit__(self, exc_type, exc_val, exc_tb):
